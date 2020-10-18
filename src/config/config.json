@@ -1,0 +1,5 @@
+{
+    "databaseURL": "https://perna-app.firebaseio.com",
+    "storageBucket": "perna-app.appspot.com",
+    "projectId": "perna-app"
+}

@@ -1,0 +1,6 @@
+flask 
+numpy
+gunicorn
+dnspython
+firebase-admin
+python-dotenv
