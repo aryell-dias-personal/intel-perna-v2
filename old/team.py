@@ -1,8 +1,8 @@
 import sys
 from src.model.ant import Ant
-import numpy as np
 
 # TODO:
+# como garantir a ordem?
 # ajuste no __find_neighborhood, inserção de informação dos asked_points no team.py
 class AntTeam(object):
     def __init__(self, agents, evaluation):
@@ -42,34 +42,49 @@ class AntTeam(object):
 
     def __update_taboo(self):
         for ant in self.__ants:
-            self.__taboo += ant.solution
+            self.__taboo.append(ant.current_state)
         self.__taboo = list(set(self.__taboo))
-        self.__remain = set(self.__loader.encodedNames) - set(self.__taboo)
 
-    def __move_ant(self, ant, transition_params):
+    def __find_neighborhood(self):
+        taboo = list(map(self.__loader.encodedNameIndex, self.__taboo))
+        nodes = self.__loader.getRemainingNodes(taboo)
+        return list(filter(lambda x: x not in taboo, nodes))
+
+    def __find_moving_ant(self, ant, transition_params, depth=5):
+        another_ant_found = None
         next_state = ant.state_transition_rule(*transition_params)
-        ant.move_to(next_state)
 
-    def __evaluate(self, ant): 
-        if(len(ant.find_neighborhood(self.__loader, self.__taboo))):
-            return self.__distance_of(ant.solution + [ant.solution[0]])
-        else:
-            return sys.maxsize
+        # alguns next_state podem ficar nulos... indicando que algumas 
+        # formigas podem ficar sem vizinhança por conta do taboo em conjunto com a neighborhood limitada
 
-    def __choose_next_ant(self):
-        return min(self.__ants, key=self.__evaluate)
+        i1 = self.__find_init(ant)
+        d1 = self.__distance_of(ant.solution + [next_state, i1])
+
+        # aqui ele deve achar a formiga (que pode visitar next_state) com menor distancia
+        for other_ant in filter(lambda x: x != ant, self.__ants):
+            i2 = self.__find_init(other_ant)
+            d2 = self.__distance_of(other_ant.solution + [next_state, i2])
+            if d2 < d1 and (another_ant_found is None or d2 < another_ant_found[1]):
+                another_ant_found = (other_ant, d2)
+
+        if another_ant_found is None:
+            return ant, next_state
+        if depth <= 0:
+            return another_ant_found[0], next_state
+        return self.__find_moving_ant(another_ant_found[0], transition_params, depth - 1)
 
     def build_solution(self, loader, q0, alpha, beta, trails):
         self.__taboo = []
         self.__solution = []
-        self.__loader = loader
         self.__update_taboo()
+        self.__loader = loader
         self.__initial_states = list(map(lambda x: x.current_state, self.__ants))
 
-        while len(self.__taboo) < len(loader) - len(self.__initial_states):
+        while len(self.__taboo) < len(loader):
             transition_params = [loader, self.__taboo, q0, alpha, beta, trails]
-            ant = self.__choose_next_ant()
-            self.__move_ant(ant, transition_params)
+            first_ant = min(self.__ants, key=lambda x: self.__distance_of(x.solution))
+            ant, next_state = self.__find_moving_ant(first_ant, transition_params)
+            ant.move_to(next_state)
             self.__update_taboo()
 
         self.__go_back(self.__initial_states)

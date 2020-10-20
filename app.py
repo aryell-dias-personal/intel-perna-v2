@@ -4,7 +4,7 @@ import base64
 import traceback 
 from flask import Flask, jsonify, request, make_response
 from src.model.taco import TeamAntColonyOptimization
-from src.helpers.constants import PAYLOAD, MATRIX_FIELDS
+from src.helpers.constants import PAYLOAD
 from src.data.evaluation import Evaluation
 from src.data.loader import Loader
 from src.data.stop import StopCriterion
@@ -19,10 +19,10 @@ def getRoutes(payload):
     data = json.loads(payload)
     evaluation = Evaluation.minmax()
     antSystem = TeamAntColonyOptimization(data[PAYLOAD.AGENTS], evaluation)
-    loader = Loader(data[PAYLOAD.MATRIX])
-    stopCriterion = StopCriterion.iteration_limit(3)
+    loader = Loader(data[PAYLOAD.MATRIX], data[PAYLOAD.AGENTS])
+    stopCriterion = StopCriterion.iteration_limit(150)
     solutions, score, track = antSystem.optimize(loader, stopCriterion)
-    result = parseResult(solutions, data[PAYLOAD.AGENTS], data[PAYLOAD.MATRIX][MATRIX_FIELDS.LOCAL_NAMES])
+    result = parseResult(loader, solutions, data[PAYLOAD.AGENTS])
     # notifyUser(result)
     return result
 

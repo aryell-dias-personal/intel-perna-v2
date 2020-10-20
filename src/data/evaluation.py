@@ -3,6 +3,8 @@ from abc import ABC
 from abc import abstractmethod
 
 # TODO: evaluate (like a fitness)
+# como garantir horario do pedido?
+# ajuste no evaluation
 class EvaluationDefinition(ABC):
     def __init__(self):
         self.__loader = None
@@ -11,7 +13,7 @@ class EvaluationDefinition(ABC):
         distance = 0
         current_state = solution[0]
         for state in solution[1:]:
-            distance = distance + self.__loader.matrix[current_state, state]
+            distance = distance + self.__loader.encodedMatrix[current_state, state]
             current_state = state
         return distance
 
