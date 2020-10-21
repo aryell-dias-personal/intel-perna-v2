@@ -13,6 +13,15 @@ class Loader(object):
     def __len__(self):
         return self.dimension
 
+    def askedPointFromRoute(self, encodedNameIndexList):
+        visitedAskedpoint = []
+        askedPointIdx = None 
+        for idx in encodedNameIndexList:
+            if idx in self.origens:
+                askedPointIdx = self.origens.index(idx)
+                visitedAskedpoint.append(self.askedPoints[askedPointIdx])
+        return visitedAskedpoint
+    
     def decodePlace(self, place):
         return place.split(ENCODED_NAMES.SEPARETOR)[0]
 

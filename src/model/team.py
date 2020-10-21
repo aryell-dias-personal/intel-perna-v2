@@ -65,7 +65,7 @@ class AntTeam(object):
         self.__initial_states = list(map(lambda x: x.reset(), self.__ants))
         self.__update_taboo()
 
-        while len(self.__taboo) < len(loader) - len(self.__initial_states):
+        while len(self.__taboo) < len(loader):
             transition_params = [loader, self.__taboo, q0, alpha, beta, trails]
             ant = self.__choose_next_ant()
             self.__move_ant(ant, transition_params)
