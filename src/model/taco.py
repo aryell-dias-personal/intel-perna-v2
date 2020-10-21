@@ -55,8 +55,7 @@ class TeamAntColonyOptimization(object):
                 dest = solution[1:]
                 delta_matrix[src, dest] += step
 
-        trails *= 1 - self.__rho
-        trails += self.__rho * delta_matrix
+        trails = (1 - self.__rho)*trails + delta_matrix
 
     def __global_pheromone_update(self, trails):
         step = 1.0 / self.__best_evaluation
@@ -66,5 +65,4 @@ class TeamAntColonyOptimization(object):
             dest = solution[1:]
             delta_matrix[src, dest] += step
 
-        trails *= 1 - self.__rho
-        trails += self.__rho * delta_matrix
+        trails = (1 - self.__rho)*trails + delta_matrix
