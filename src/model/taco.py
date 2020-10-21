@@ -1,5 +1,6 @@
 import sys
 import numpy as np
+from joblib import Parallel, delayed
 from src.model.team import AntTeam
 
 class TeamAntColonyOptimization(object):
@@ -30,9 +31,13 @@ class TeamAntColonyOptimization(object):
         return self.__best_solution, self.__best_evaluation, track
 
     def __build_solutions(self, loader, trails):
-        # TODO: paralelizar
-        for team in self.__teams:
-            team.build_solution(loader, self.__q0, self.__alpha, self.__beta, trails)
+        def function(team):
+            team.build_solution(loader, self.__q0, self.__alpha, self.__beta, trails) 
+        Parallel(n_jobs=3, require='sharedmem')(
+            delayed(function)(team)
+            for team in self.__teams
+        )
+
 
     def __update_best_solution(self):
         for team in self.__teams:

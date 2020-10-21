@@ -4,3 +4,4 @@ gunicorn
 dnspython
 firebase-admin
 python-dotenv
+joblib
