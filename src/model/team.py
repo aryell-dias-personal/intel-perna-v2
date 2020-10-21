@@ -2,8 +2,6 @@ import sys
 from src.model.ant import Ant
 import numpy as np
 
-# TODO:
-# ajuste no __find_neighborhood, inserção de informação dos asked_points no team.py
 class AntTeam(object):
     def __init__(self, agents, evaluation):
         self.__taboo = []
@@ -64,8 +62,8 @@ class AntTeam(object):
         self.__taboo = []
         self.__solution = []
         self.__loader = loader
+        self.__initial_states = list(map(lambda x: x.reset(), self.__ants))
         self.__update_taboo()
-        self.__initial_states = list(map(lambda x: x.current_state, self.__ants))
 
         while len(self.__taboo) < len(loader) - len(self.__initial_states):
             transition_params = [loader, self.__taboo, q0, alpha, beta, trails]

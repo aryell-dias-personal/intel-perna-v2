@@ -10,6 +10,11 @@ class Ant(object):
         self.__solution = [self.__current_state]
         self.__id = str(uuid.uuid4())
 
+    def reset(self):
+        self.__solution = [self.__current_state]
+        self.__avaiable_places = self.__max_avaiable_places
+        return self.current_state
+
     def move_to(self, state, loader=None):
         self.__current_state = state
         if(loader):

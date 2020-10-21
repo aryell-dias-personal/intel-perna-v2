@@ -30,7 +30,7 @@ class TeamAntColonyOptimization(object):
         return self.__best_solution, self.__best_evaluation, track
 
     def __build_solutions(self, loader, trails):
-        # paralelizar
+        # TODO: paralelizar
         for team in self.__teams:
             team.build_solution(loader, self.__q0, self.__alpha, self.__beta, trails)
 

@@ -2,9 +2,7 @@ import numpy as np
 from abc import ABC
 from abc import abstractmethod
 
-# TODO: evaluate (like a fitness)
-# como garantir horario do pedido?
-# ajuste no evaluation
+# TODO: como garantir horario do pedido ajuste no evaluation
 class EvaluationDefinition(ABC):
     def __init__(self):
         self.__loader = None

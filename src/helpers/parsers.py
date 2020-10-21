@@ -1,7 +1,6 @@
 from src.helpers.constants import MATRIX_FIELDS, AGENT_FIELDS, ASKED_POINT_FIELDS
 
-# como mapear quem pediu?
-# solution deverá ser uma lista de start e endpoints do askedPoint
+# TODO: mapear quem pediu solution deverá ser uma lista de start e endpoints do askedPoint
 def parseResult(loader, routes, agents):
     return [
         {
