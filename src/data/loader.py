@@ -16,6 +16,9 @@ class Loader(object):
     def decodePlace(self, place):
         return place.split(ENCODED_NAMES.SEPARETOR)[0]
 
+    def deltaPlaces(self, encodedName):
+        return -1 if self.encodedNameIndex(encodedName) in self.origens else 1
+
     def mountEncodedMatrix(self):
         self.__encondedMatrix = np.zeros([self.dimension, self.dimension])
         for i in range(self.dimension):
@@ -30,16 +33,19 @@ class Loader(object):
         originalName = self.decodePlace(encodedName)
         return self.localNames.index(originalName)
 
-    def getRemainingNodes(self, visited, taboo):
+    def getRemainingNodes(self, visited, taboo, avaiablePlaces):
         tabooIndexes = list(map(self.encodedNameIndex, taboo))
         origensSet = set(self.origens)
-        visitedOrigens = list(origensSet.intersection(set(visited)))
+        visitedSet = set(visited)
+        visitedOrigens = list(origensSet.intersection(visitedSet))
         openDestinations = set([
             self.destinations[
                 self.origens.index(origen)
             ] for origen in visitedOrigens
         ])
-        return list(origensSet.union(openDestinations) - set(tabooIndexes).union(set(visited)))
+        possibleChoices = origensSet.union(openDestinations) if avaiablePlaces else openDestinations
+        blockedChoices = set(tabooIndexes).union(visitedSet)
+        return list(possibleChoices - blockedChoices)
 
     def encodedNameIndex(self, encodedName):
         return self.encodedNames.index(encodedName)

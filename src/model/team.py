@@ -47,8 +47,9 @@ class AntTeam(object):
         self.__remain = set(self.__loader.encodedNames) - set(self.__taboo)
 
     def __move_ant(self, ant, transition_params):
+        loader = transition_params[0]
         next_state = ant.state_transition_rule(*transition_params)
-        ant.move_to(next_state)
+        ant.move_to(next_state, loader)
 
     def __evaluate(self, ant): 
         if(len(ant.find_neighborhood(self.__loader, self.__taboo))):

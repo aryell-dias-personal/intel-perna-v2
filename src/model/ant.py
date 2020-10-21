@@ -2,15 +2,18 @@ import uuid
 import numpy as np
 from src.helpers.constants import AGENT_FIELDS 
 
-
 class Ant(object):
     def __init__(self, agent):
         self.__current_state = agent[AGENT_FIELDS.GARAGE]
+        self.__max_avaiable_places = agent[AGENT_FIELDS.NUMBER_OF_PLACES]
+        self.__avaiable_places = self.__max_avaiable_places
         self.__solution = [self.__current_state]
         self.__id = str(uuid.uuid4())
 
-    def move_to(self, state):
+    def move_to(self, state, loader=None):
         self.__current_state = state
+        if(loader):
+            self.__avaiable_places += loader.deltaPlaces(state)
         self.__solution.append(state)
 
     @property
@@ -27,14 +30,12 @@ class Ant(object):
 
     def find_neighborhood(self, loader, taboo):
         visited = list(map(loader.encodedNameIndex, self.__solution))
-        return loader.getRemainingNodes(visited, taboo)
+        return loader.getRemainingNodes(visited, taboo, self.__avaiable_places)
 
     def state_transition_rule(self, loader, taboo, q0, alpha, beta, trails):
         neighborhood = self.find_neighborhood(loader, taboo)
-        if(neighborhood):
-            if np.random.uniform(0, 1) <= q0:
-                return self.__exploit(loader, neighborhood, alpha, beta, trails)
-            return self.__explore(loader, neighborhood, alpha, beta, trails)
+        function = self.__exploit if np.random.uniform(0, 1) <= q0 else self.__explore            
+        return function(loader, neighborhood, alpha, beta, trails)
 
     def __get_targets(self, loader, neighborhood, alpha, beta, trails):
         current_state_index = loader.encodedNameIndex(self.current_state)
