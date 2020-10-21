@@ -4,7 +4,7 @@ from joblib import Parallel, delayed
 from src.model.team import AntTeam
 
 class TeamAntColonyOptimization(object):
-    def __init__(self, agents, evaluation, n_teams=150, rho=0.1, q0=0.9, alpha=1, beta=2):
+    def __init__(self, agents, evaluation, n_teams=150, rho=0.5, q0=0.5, alpha=1, beta=5):
         self.__q0 = q0
         self.__rho = rho
         self.__beta = beta

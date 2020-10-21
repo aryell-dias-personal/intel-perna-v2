@@ -17,7 +17,7 @@ app = Flask(__name__)
 
 def getRoutes(payload):
     data = json.loads(payload)
-    evaluation = Evaluation.minmax()
+    evaluation = Evaluation.squared_sum()
     antSystem = TeamAntColonyOptimization(data[PAYLOAD.AGENTS], evaluation)
     loader = Loader(data[PAYLOAD.MATRIX], data[PAYLOAD.AGENTS])
     stopCriterion = StopCriterion.iteration_limit(150)
