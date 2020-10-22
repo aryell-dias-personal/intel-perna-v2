@@ -3,6 +3,13 @@ from abc import ABC
 from abc import abstractmethod
 
 # TODO: como garantir horario do pedido ajuste no evaluation
+# 1. [ ] adicionar custos temporais no input
+# 2. [ ] tratar ajuste no input na matriz de distâncias
+# 3. [ ] criar matriz de tempo
+# 4. [ ] criar um objeto de tempos desejados por encodedName
+# 5. [ ] criar uma lista "track_times" na formiga e/ou "current_time"
+# 6. [ ] definir que acima de um certo treshold de deslocamento no tempo a distáncia fica sys.maxsize
+# 7. [ ] definir que se o current_time for acima do fim do expediente do a gente a distáncia fica sys.maxsize
 class EvaluationDefinition(ABC):
     def __init__(self):
         self.__loader = None
