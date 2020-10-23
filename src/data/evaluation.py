@@ -3,13 +3,15 @@ from abc import ABC
 from abc import abstractmethod
 
 # TODO: como garantir horario do pedido ajuste no evaluation
-# 1. [ ] adicionar custos temporais no input
-# 2. [ ] tratar ajuste no input na matriz de distâncias
-# 3. [ ] criar matriz de tempo
-# 4. [ ] criar um objeto de tempos desejados por encodedName
-# 5. [ ] criar uma lista "track_times" na formiga e/ou "current_time"
+# 1. [X] adicionar custos temporais no input
+# 2. [X] tratar ajuste no input na matriz de distâncias
+# 3. [X] criar matriz de tempo
+# 4. [X] criar um objeto de tempos desejados por encodedName
+# 5. [X] criar uma lista "track_times" na formiga e/ou "current_time"
 # 6. [ ] definir que acima de um certo treshold de deslocamento no tempo a distáncia fica sys.maxsize
 # 7. [ ] definir que se o current_time for acima do fim do expediente do a gente a distáncia fica sys.maxsize
+# 8. [ ] o while deve rodar ate que nenhuma das ants tenha neighborhood, caso isso acontecer, ajuste será necessário no
+# evaluation para valorizar a concretização de todos os askedPoints...
 class EvaluationDefinition(ABC):
     def __init__(self):
         self.__loader = None
@@ -18,7 +20,7 @@ class EvaluationDefinition(ABC):
         distance = 0
         current_state = solution[0]
         for state in solution[1:]:
-            distance = distance + self.__loader.encodedMatrix[current_state, state]
+            distance = distance + self.__loader.distanceMatrix[current_state, state]
             current_state = state
         return distance
 

@@ -28,15 +28,25 @@ class Loader(object):
     def deltaPlaces(self, encodedName):
         return -1 if self.encodedNameIndex(encodedName) in self.origens else 1
 
+    def mountDesiredTimes(self):
+        result = {}
+        for askedPoint in self.askedPoints:
+            result[askedPoint[ASKED_POINT_FIELDS.ORIGIN]] = askedPoint[ASKED_POINT_FIELDS.ASKED_START_AT]
+            result[askedPoint[ASKED_POINT_FIELDS.DESTINY]] = askedPoint[ASKED_POINT_FIELDS.ASKED_END_AT]
+        self.__dictDesiredTime = result
+
     def mountEncodedMatrix(self):
-        self.__encondedMatrix = np.zeros([self.dimension, self.dimension])
+        self.__distanceMatrix = np.zeros([self.dimension, self.dimension])
+        self.__timeMatrix = np.zeros([self.dimension, self.dimension])
         for i in range(self.dimension):
             encodedNameI = self.encodedNames[i]
             originalI = self.getOriginalIndex(encodedNameI)
             for j in range(self.dimension):
                 encodedNameJ = self.encodedNames[j]
                 originalJ = self.getOriginalIndex(encodedNameJ)
-                self.__encondedMatrix[i, j] = self.matrix[originalI, originalJ] or 1e-14
+                self.__distanceMatrix[i, j] = self.matrix[originalI, originalJ][0] or 1e-14
+                self.__timeMatrix[i, j] = self.matrix[originalI, originalJ][1] or 1e-14
+
 
     def getOriginalIndex(self, encodedName):
         originalName = self.decodePlace(encodedName)
@@ -75,6 +85,12 @@ class Loader(object):
         else:
             self.origens, self.destinations = [], []
 
+    def getCurrentTime(self, startTime, startEncodedName, endEncodedName):
+        time = startTime
+        timeSpent = self.timeMatrix[self.encodedNameIndex(startEncodedName), self.encodedNameIndex(endEncodedName)]
+        time += timeSpent
+        return time
+
     @property
     def encodedNames(self):
         return self.__encodedNames
@@ -92,8 +108,16 @@ class Loader(object):
         return self.__matrix[MATRIX_FIELDS.ASKED_POINTS]
     
     @property
-    def encodedMatrix(self):
-        return np.array(self.__encondedMatrix)
+    def distanceMatrix(self):
+        return np.array(self.__distanceMatrix)
+    
+    @property
+    def timeMatrix(self):
+        return np.array(self.__timeMatrix)
+
+    @property
+    def dictDesiredTime(self):
+        return self.__dictDesiredTime
     
     @property
     def matrix(self):

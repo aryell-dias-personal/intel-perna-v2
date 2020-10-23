@@ -26,6 +26,10 @@ def getRoutes(payload):
     # notifyUser(result)
     return result
 
+# TODO: dar uma lida em: 
+# https://cloud.google.com/run/docs/triggering/pubsub-push?hl=pt-br#run_pubsub_handler-python
+# https://cloud.google.com/run/docs/gke/enabling-on-existing-clusters
+# no entanto parece mais adequado colocar em App Engine
 @app.route("/", methods=["POST"])
 def post():
     try:

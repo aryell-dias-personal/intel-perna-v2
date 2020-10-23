@@ -33,7 +33,7 @@ class TeamAntColonyOptimization(object):
     def __build_solutions(self, loader, trails):
         def function(team):
             team.build_solution(loader, self.__q0, self.__alpha, self.__beta, trails) 
-        Parallel(n_jobs=3, require='sharedmem')(
+        Parallel(n_jobs=1, require='sharedmem')(
             delayed(function)(team)
             for team in self.__teams
         )

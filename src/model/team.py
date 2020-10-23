@@ -27,7 +27,7 @@ class AntTeam(object):
             for state in solution[1:]:
                 current_state_index = self.__loader.encodedNameIndex(current_state)
                 state_index = self.__loader.encodedNameIndex(state)
-                distance = distance + self.__loader.encodedMatrix[current_state_index, state_index]
+                distance = distance + self.__loader.distanceMatrix[current_state_index, state_index]
                 current_state = state
         return distance
 
@@ -36,7 +36,7 @@ class AntTeam(object):
 
     def __go_back(self, initial_states):
         for idx, state in enumerate(initial_states):
-            self.__ants[idx].move_to(state)
+            self.__ants[idx].move_to(state, self.__loader)
 
     def __update_taboo(self):
         for ant in self.__ants:
@@ -45,9 +45,8 @@ class AntTeam(object):
         self.__remain = set(self.__loader.encodedNames) - set(self.__taboo)
 
     def __move_ant(self, ant, transition_params):
-        loader = transition_params[0]
         next_state = ant.state_transition_rule(*transition_params)
-        ant.move_to(next_state, loader)
+        ant.move_to(next_state, self.__loader)
 
     def __evaluate(self, ant): 
         if(len(ant.find_neighborhood(self.__loader, self.__taboo))):

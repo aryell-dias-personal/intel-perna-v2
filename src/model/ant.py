@@ -4,21 +4,30 @@ from src.helpers.constants import AGENT_FIELDS
 
 class Ant(object):
     def __init__(self, agent):
+        self.__start_time = agent[AGENT_FIELDS.ASKED_START_AT]
+        self.__end_time = agent[AGENT_FIELDS.ASKED_END_AT]
+        self.__garage = agent[AGENT_FIELDS.GARAGE]
         self.__current_state = agent[AGENT_FIELDS.GARAGE]
+        self.__current_time = self.__start_time
+        self.__track_times = [self.__current_time]
         self.__max_avaiable_places = agent[AGENT_FIELDS.NUMBER_OF_PLACES]
         self.__avaiable_places = self.__max_avaiable_places
         self.__solution = [self.__current_state]
         self.__id = str(uuid.uuid4())
 
     def reset(self):
+        self.__current_state = self.__garage
         self.__solution = [self.__current_state]
         self.__avaiable_places = self.__max_avaiable_places
+        self.__current_time = self.__start_time
+        self.__track_times = [self.__current_time]
         return self.current_state
 
-    def move_to(self, state, loader=None):
+    def move_to(self, state, loader):
+        self.__current_time = loader.getCurrentTime(self.__current_time, self.__current_state, state)
+        self.__track_times.append(self.__current_time)
         self.__current_state = state
-        if(loader):
-            self.__avaiable_places += loader.deltaPlaces(state)
+        self.__avaiable_places += loader.deltaPlaces(state)
         self.__solution.append(state)
 
     @property
@@ -46,7 +55,7 @@ class Ant(object):
         current_state_index = loader.encodedNameIndex(self.current_state)
         possible_trails = trails[current_state_index, neighborhood]
         original_index = loader.encodedNameIndex(self.current_state)
-        attractiveness = loader.encodedMatrix[original_index, neighborhood] ** -1.0
+        attractiveness = loader.distanceMatrix[original_index, neighborhood] ** -1.0
 
         return (possible_trails ** alpha) * (attractiveness ** beta)
 
