@@ -9,6 +9,7 @@ class Loader(object):
         self.extractEncodedNames()
         self.extractOrigensAndDestines()
         self.mountEncodedMatrix()
+        self.mountDesiredTimes()
 
     def __len__(self):
         return self.dimension
@@ -29,11 +30,12 @@ class Loader(object):
         return -1 if self.encodedNameIndex(encodedName) in self.origens else 1
 
     def mountDesiredTimes(self):
-        result = {}
+        self.__desiredTime = np.zeros([self.dimension])
         for askedPoint in self.askedPoints:
-            result[askedPoint[ASKED_POINT_FIELDS.ORIGIN]] = askedPoint[ASKED_POINT_FIELDS.ASKED_START_AT]
-            result[askedPoint[ASKED_POINT_FIELDS.DESTINY]] = askedPoint[ASKED_POINT_FIELDS.ASKED_END_AT]
-        self.__dictDesiredTime = result
+            startIndex = self.encodedNameIndex(askedPoint[ASKED_POINT_FIELDS.ORIGIN])
+            self.__desiredTime[startIndex] = askedPoint[ASKED_POINT_FIELDS.ASKED_START_AT]
+            endIndex = self.encodedNameIndex(askedPoint[ASKED_POINT_FIELDS.DESTINY])
+            self.__desiredTime[endIndex] = askedPoint[ASKED_POINT_FIELDS.ASKED_END_AT]
 
     def mountEncodedMatrix(self):
         self.__distanceMatrix = np.zeros([self.dimension, self.dimension])
@@ -45,7 +47,7 @@ class Loader(object):
                 encodedNameJ = self.encodedNames[j]
                 originalJ = self.getOriginalIndex(encodedNameJ)
                 self.__distanceMatrix[i, j] = self.matrix[originalI, originalJ][0] or 1e-14
-                self.__timeMatrix[i, j] = self.matrix[originalI, originalJ][1] or 1e-14
+                self.__timeMatrix[i, j] = self.matrix[originalI, originalJ][1]
 
 
     def getOriginalIndex(self, encodedName):
@@ -116,8 +118,8 @@ class Loader(object):
         return np.array(self.__timeMatrix)
 
     @property
-    def dictDesiredTime(self):
-        return self.__dictDesiredTime
+    def desiredTime(self):
+        return self.__desiredTime
     
     @property
     def matrix(self):

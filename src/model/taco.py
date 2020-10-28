@@ -10,7 +10,7 @@ class TeamAntColonyOptimization(object):
         self.__beta = beta
         self.__alpha = alpha
         self.__best_solution = []
-        self.__best_evaluation = sys.maxsize
+        self.__best_evaluation = sys.maxsize, sys.maxsize
         self.__teams = [ AntTeam(agents, evaluation) for _ in range(n_teams) ]
 
     def optimize(self, loader, stop_criterion):
@@ -41,7 +41,11 @@ class TeamAntColonyOptimization(object):
 
     def __update_best_solution(self):
         for team in self.__teams:
-            if team.evaluation < self.__best_evaluation:
+            distanceEvaluation, timeEvaluation = team.evaluation
+            bestDistanceEvaluation, bestTimeEvaluation = self.__best_evaluation
+            if (timeEvaluation < bestTimeEvaluation) or \
+                (timeEvaluation == bestTimeEvaluation and \
+                    distanceEvaluation < bestDistanceEvaluation):
                 self.__best_evaluation = team.evaluation
                 self.__best_solution = team.solution
 
@@ -58,7 +62,7 @@ class TeamAntColonyOptimization(object):
         trails = (1 - self.__rho)*trails + delta_matrix
 
     def __global_pheromone_update(self, trails):
-        step = 1.0 / self.__best_evaluation
+        step = 1.0 / np.random.choice(self.__best_evaluation)
         delta_matrix = np.zeros_like(trails)
         for solution in self.__best_solution:
             src = solution[:-1]

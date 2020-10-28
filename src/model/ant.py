@@ -54,8 +54,11 @@ class Ant(object):
     def __get_targets(self, loader, neighborhood, alpha, beta, trails):
         current_state_index = loader.encodedNameIndex(self.current_state)
         possible_trails = trails[current_state_index, neighborhood]
-        original_index = loader.encodedNameIndex(self.current_state)
-        attractiveness = loader.distanceMatrix[original_index, neighborhood] ** -1.0
+        current_index = loader.encodedNameIndex(self.current_state)
+        time_cost = loader.timeMatrix[current_index, neighborhood]
+        distance = loader.distanceMatrix[current_index, neighborhood]
+        time_shift = np.abs(loader.desiredTime[neighborhood] - (time_cost + self.__current_time)) + 1e-14
+        attractiveness = [distance, time_shift][np.random.choice(2)] ** -1.0
 
         return (possible_trails ** alpha) * (attractiveness ** beta)
 
