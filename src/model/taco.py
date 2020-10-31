@@ -44,11 +44,11 @@ class TeamAntColonyOptimization(object):
         for team in self.__teams:
             distanceEvaluation, timeEvaluation, notVisitedRate = team.evaluation
             bestDistanceEvaluation, bestTimeEvaluation, bestNotVisitedRate = self.__best_evaluation
-            if notVisitedRate < bestNotVisitedRate or \
-                (notVisitedRate == bestNotVisitedRate and \
-                    (timeEvaluation < bestTimeEvaluation) or \
-                        (timeEvaluation == bestTimeEvaluation and \
-                            distanceEvaluation < bestDistanceEvaluation)):
+            if timeEvaluation < bestTimeEvaluation or \
+                (timeEvaluation == bestTimeEvaluation and \
+                    ((notVisitedRate < bestNotVisitedRate) or \
+                        (notVisitedRate == bestNotVisitedRate and \
+                            distanceEvaluation < bestDistanceEvaluation))):
                 self.__best_evaluation = team.evaluation
                 self.__best_solution_track_times = team.solution_track_times
                 self.__best_solution = team.solution
