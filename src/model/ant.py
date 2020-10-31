@@ -33,6 +33,10 @@ class Ant(object):
     @property
     def id(self):
         return self.__id
+    
+    @property
+    def track_times(self):
+        return self.__track_times
 
     @property
     def startEndTime(self):
@@ -48,12 +52,17 @@ class Ant(object):
 
     def find_neighborhood(self, loader, taboo):
         visited = list(map(loader.encodedNameIndex, self.__solution))
-        return loader.getRemainingNodes(visited, taboo, self.__avaiable_places)
+        hasntEnded =  self.__current_time < self.__end_time
+        hasAvaiablePlaces = self.__avaiable_places > 0
+        shoudntblockOrigens = hasntEnded and hasAvaiablePlaces
+        includedOrigens = loader.getIncludedOrigens(self.current_state, self.__current_time, self.__end_time, shoudntblockOrigens)
+        return loader.getRemainingNodes(visited, taboo, includedOrigens)
 
     def state_transition_rule(self, loader, taboo, q0, alpha, beta, trails):
         neighborhood = self.find_neighborhood(loader, taboo)
-        function = self.__exploit if np.random.uniform(0, 1) <= q0 else self.__explore            
-        return function(loader, neighborhood, alpha, beta, trails)
+        if(neighborhood):
+            function = self.__exploit if np.random.uniform(0, 1) <= q0 else self.__explore            
+            return function(loader, neighborhood, alpha, beta, trails)
 
     def __get_targets(self, loader, neighborhood, alpha, beta, trails):
         current_state_index = loader.encodedNameIndex(self.current_state)

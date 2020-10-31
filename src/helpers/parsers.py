@@ -1,9 +1,12 @@
-from src.helpers.constants import MATRIX_FIELDS, AGENT_FIELDS, ASKED_POINT_FIELDS
+from src.helpers.constants import MATRIX_FIELDS, AGENT_FIELDS, ASKED_POINT_FIELDS, ROUTE_POINT_FIELDS
 
-def parseResult(loader, routes, agents):
+def parseResult(loader, routes, times, agents):
     result = []
     for i in range(len(routes)):
-        route = [loader.decodePlace(loader.encodedNames[idx]) for idx in routes[i]]
+        route = [{
+            ROUTE_POINT_FIELDS.LOCAL: loader.decodePlace(loader.encodedNames[routes[i][idx]]),
+            ROUTE_POINT_FIELDS.TIME: times[i][idx]
+        } for idx in range(len(routes[i]))]
         visitedAskedPoints = loader.askedPointFromRoute(routes[i])
         fromEmail = agents[i][AGENT_FIELDS.FROM_EMAIL]
         result.append({

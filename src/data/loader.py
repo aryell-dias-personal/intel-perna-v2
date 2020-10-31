@@ -58,7 +58,16 @@ class Loader(object):
         originalName = self.decodePlace(encodedName)
         return self.localNames.index(originalName)
 
-    def getRemainingNodes(self, visited, taboo, avaiablePlaces):
+    def getIncludedOrigens(self, current_state, current_time, end_time, shoudntblockOrigens):
+        if(shoudntblockOrigens):
+            current_index = self.encodedNameIndex(current_state)
+            time_cost = self.timeMatrix[current_index, self.origens]
+            future_time = time_cost + current_time 
+            origens = np.array(self.origens)
+            return set(origens[future_time < end_time])
+        return set()
+
+    def getRemainingNodes(self, visited, taboo, includedOrigens):
         tabooIndexes = list(map(self.encodedNameIndex, taboo))
         origensSet = set(self.origens)
         visitedSet = set(visited)
@@ -68,7 +77,7 @@ class Loader(object):
                 self.origens.index(origen)
             ] for origen in visitedOrigens
         ])
-        possibleChoices = origensSet.union(openDestinations) if avaiablePlaces else openDestinations
+        possibleChoices = includedOrigens.union(openDestinations)
         blockedChoices = set(tabooIndexes).union(visitedSet)
         return list(possibleChoices - blockedChoices)
 
@@ -76,7 +85,7 @@ class Loader(object):
         return self.encodedNames.index(encodedName)
         
     def extractEncodedNames(self):
-        self.__encodedNames = np.unique([[agent[AGENT_FIELDS.GARAGE] for agent in self.__agents]] + [[
+        self.__encodedNames = np.unique([[agent[AGENT_FIELDS.GARAGE]]*2 for agent in self.__agents] + [[
             point[ASKED_POINT_FIELDS.ORIGIN],
             point[ASKED_POINT_FIELDS.DESTINY] 
         ] for point in self.askedPoints]).flatten().tolist()
@@ -93,9 +102,11 @@ class Loader(object):
 
     def getCurrentTime(self, startTime, startEncodedName, endEncodedName):
         time = startTime
-        timeSpent = self.timeMatrix[self.encodedNameIndex(startEncodedName), self.encodedNameIndex(endEncodedName)]
+        startIndex, endIndex = self.encodedNameIndex(startEncodedName), self.encodedNameIndex(endEncodedName)
+        timeSpent = self.timeMatrix[startIndex, endIndex]
+        desiredTime = self.desiredTime[endIndex]
         time += timeSpent
-        return time
+        return time if time > desiredTime else desiredTime
 
     @property
     def encodedNames(self):

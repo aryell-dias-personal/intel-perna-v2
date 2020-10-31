@@ -6,6 +6,7 @@ class AntTeam(object):
     def __init__(self, agents, evaluation):
         self.__taboo = []
         self.__solution = []
+        self.__solution_track_times = []
         self.__loader = None
         self.__initial_states = []
         self.__evaluation = sys.maxsize
@@ -20,6 +21,10 @@ class AntTeam(object):
     @property
     def solution(self):
         return self.__solution.copy()
+    
+    @property
+    def solution_track_times(self):
+        return self.__solution_track_times
 
     @property
     def startEndtimes(self):
@@ -49,10 +54,6 @@ class AntTeam(object):
         self.__taboo = list(set(self.__taboo))
         self.__remain = set(self.__loader.encodedNames) - set(self.__taboo)
 
-    def __move_ant(self, ant, transition_params):
-        next_state = ant.state_transition_rule(*transition_params)
-        ant.move_to(next_state, self.__loader)
-
     def __evaluate(self, ant): 
         if(len(ant.find_neighborhood(self.__loader, self.__taboo))):
             return self.__distance_of(ant.solution + [ant.solution[0]])
@@ -62,9 +63,17 @@ class AntTeam(object):
     def __choose_next_ant(self):
         return min(self.__ants, key=self.__evaluate)
 
+    def __update_solution(self):
+        for ant in self.__ants:
+            self.__solution.append(list(map(
+                self.__loader.encodedNameIndex, ant.solution
+            )))
+            self.__solution_track_times.append(ant.track_times)
+
     def build_solution(self, loader, q0, alpha, beta, trails):
         self.__taboo = []
         self.__solution = []
+        self.__solution_track_times = []
         self.__loader = loader
         self.__initial_states = list(map(lambda x: x.reset(), self.__ants))
         self.__update_taboo()
@@ -72,13 +81,11 @@ class AntTeam(object):
         while len(self.__taboo) < len(loader):
             transition_params = [loader, self.__taboo, q0, alpha, beta, trails]
             ant = self.__choose_next_ant()
-            self.__move_ant(ant, transition_params)
+            next_state = ant.state_transition_rule(*transition_params)
+            if(not next_state): break
+            ant.move_to(next_state, self.__loader)
             self.__update_taboo()
 
         self.__go_back(self.__initial_states)
-        self.__solution = list(map(
-            lambda x: list(map(
-                loader.encodedNameIndex, x.solution
-            )
-        ), self.__ants))
+        self.__update_solution()
         self.__evaluation = self.__evaluation_criterion(loader, self.__solution, self.startEndtimes)

@@ -21,9 +21,9 @@ def getRoutes(payload):
     antSystem = TeamAntColonyOptimization(data[PAYLOAD.AGENTS], evaluation)
     loader = Loader(data[PAYLOAD.MATRIX], data[PAYLOAD.AGENTS])
     stopCriterion = StopCriterion.iteration_limit(150)
-    solutions, score, track = antSystem.optimize(loader, stopCriterion)
-    result = parseResult(loader, solutions, data[PAYLOAD.AGENTS])
-    # notifyUser(result)
+    solutions, score, times, track = antSystem.optimize(loader, stopCriterion)
+    result = parseResult(loader, solutions, times, data[PAYLOAD.AGENTS])
+    notifyUser(result)
     return result
 
 # TODO: dar uma lida em: 

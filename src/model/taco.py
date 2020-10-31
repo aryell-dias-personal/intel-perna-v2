@@ -10,7 +10,8 @@ class TeamAntColonyOptimization(object):
         self.__beta = beta
         self.__alpha = alpha
         self.__best_solution = []
-        self.__best_evaluation = sys.maxsize, sys.maxsize
+        self.__best_solution_track_times = []
+        self.__best_evaluation = sys.maxsize, sys.maxsize, sys.maxsize
         self.__teams = [ AntTeam(agents, evaluation) for _ in range(n_teams) ]
 
     def optimize(self, loader, stop_criterion):
@@ -28,7 +29,7 @@ class TeamAntColonyOptimization(object):
             pheromone_trails[pheromone_trails < min_p] = min_p
             track.append(self.__best_evaluation)
 
-        return self.__best_solution, self.__best_evaluation, track
+        return self.__best_solution, self.__best_evaluation, self.__best_solution_track_times, track
 
     def __build_solutions(self, loader, trails):
         def function(team):
@@ -41,12 +42,15 @@ class TeamAntColonyOptimization(object):
 
     def __update_best_solution(self):
         for team in self.__teams:
-            distanceEvaluation, timeEvaluation = team.evaluation
-            bestDistanceEvaluation, bestTimeEvaluation = self.__best_evaluation
-            if (timeEvaluation < bestTimeEvaluation) or \
-                (timeEvaluation == bestTimeEvaluation and \
-                    distanceEvaluation < bestDistanceEvaluation):
+            distanceEvaluation, timeEvaluation, notVisitedRate = team.evaluation
+            bestDistanceEvaluation, bestTimeEvaluation, bestNotVisitedRate = self.__best_evaluation
+            if notVisitedRate < bestNotVisitedRate or \
+                (notVisitedRate == bestNotVisitedRate and \
+                    (timeEvaluation < bestTimeEvaluation) or \
+                        (timeEvaluation == bestTimeEvaluation and \
+                            distanceEvaluation < bestDistanceEvaluation)):
                 self.__best_evaluation = team.evaluation
+                self.__best_solution_track_times = team.solution_track_times
                 self.__best_solution = team.solution
 
     def __local_pheromone_update(self, trails):
