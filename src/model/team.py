@@ -11,6 +11,7 @@ class AntTeam(object):
         self.__evaluation = sys.maxsize
         self.__evaluation_criterion = evaluation
         self.__ants = [ Ant(agent) for agent in agents ]
+        self.__startEndtimes = list(map(lambda x: x.startEndTime, self.__ants))
 
     @property
     def evaluation(self):
@@ -19,6 +20,10 @@ class AntTeam(object):
     @property
     def solution(self):
         return self.__solution.copy()
+
+    @property
+    def startEndtimes(self):
+        return self.__startEndtimes
 
     def __distance_of(self, solution):
         distance = 0
@@ -76,4 +81,4 @@ class AntTeam(object):
                 loader.encodedNameIndex, x.solution
             )
         ), self.__ants))
-        self.__evaluation = self.__evaluation_criterion(loader, self.__solution)
+        self.__evaluation = self.__evaluation_criterion(loader, self.__solution, self.startEndtimes)

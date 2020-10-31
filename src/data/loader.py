@@ -30,12 +30,16 @@ class Loader(object):
         return -1 if self.encodedNameIndex(encodedName) in self.origens else 1
 
     def mountDesiredTimes(self):
-        self.__desiredTime = np.zeros([self.dimension])
+        self.__desiredTime = np.zeros([self.dimension]) - 1
         for askedPoint in self.askedPoints:
             startIndex = self.encodedNameIndex(askedPoint[ASKED_POINT_FIELDS.ORIGIN])
-            self.__desiredTime[startIndex] = askedPoint[ASKED_POINT_FIELDS.ASKED_START_AT]
+            askedStartAt = askedPoint.get(ASKED_POINT_FIELDS.ASKED_START_AT)
+            if(askedStartAt is not None): 
+                self.__desiredTime[startIndex] = askedStartAt
             endIndex = self.encodedNameIndex(askedPoint[ASKED_POINT_FIELDS.DESTINY])
-            self.__desiredTime[endIndex] = askedPoint[ASKED_POINT_FIELDS.ASKED_END_AT]
+            askedEndAt = askedPoint.get(ASKED_POINT_FIELDS.ASKED_END_AT)
+            if(askedEndAt is not None): 
+                self.__desiredTime[endIndex] = askedEndAt
 
     def mountEncodedMatrix(self):
         self.__distanceMatrix = np.zeros([self.dimension, self.dimension])

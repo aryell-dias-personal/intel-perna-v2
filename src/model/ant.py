@@ -35,6 +35,10 @@ class Ant(object):
         return self.__id
 
     @property
+    def startEndTime(self):
+        return self.__start_time, self.__end_time
+    
+    @property
     def solution(self):
         return self.__solution.copy()
 
