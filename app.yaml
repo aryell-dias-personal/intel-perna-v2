@@ -2,13 +2,10 @@ runtime: custom
 env: flex
 
 automatic_scaling:
-    min_num_instances: 2
+    min_num_instances: 1
     max_num_instances: 5
   
 resources:
-    cpu: 3
-    memory_gb: 0.5
+    cpu: 4
+    memory_gb: 4
     disk_size_gb: 10
-
-runtime_config:
-    python_version: 3

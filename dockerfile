@@ -6,4 +6,4 @@ COPY . ./
 
 RUN pip install -r requirements.txt
 
-CMD gunicorn --bind :$PORT app:app
+CMD gunicorn -t 3600 --bind :$PORT app:app
