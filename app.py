@@ -16,6 +16,8 @@ load_dotenv()
 app = Flask(__name__)
 
 def getRoutes(payload):
+    # TODO: analisar se o body vira codificado ou não e o formato
+    # data = json.loads(base64.b64decode(payload).decode('utf-8'))
     data = json.loads(payload)
     evaluation = Evaluation.sumEvaluation()
     antSystem = TeamAntColonyOptimization(data[PAYLOAD.AGENTS], evaluation)
