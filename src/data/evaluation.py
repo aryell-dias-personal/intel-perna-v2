@@ -11,16 +11,18 @@ class EvaluationDefinition(ABC):
         time_error = 1
         distance = 0
         current_time = startTime
-        current_state = solution[0]
-        for state in solution[1:]:
-            distance = distance + self.__loader.distanceMatrix[current_state, state]
-            current_time = current_time + self.__loader.timeMatrix[current_state, state]
-            desired_time = self.__loader.desiredTime[state]
-            if(desired_time> current_time): 
+        current_state_index = solution[0]
+        for state_index in solution[1:]:
+            current_state = self.__loader.decodePlace(self.__loader.encodedNames[current_state_index])
+            state = self.__loader.decodePlace(self.__loader.encodedNames[state_index])
+            distance = distance + self.__loader.getDistance(current_state, state)
+            current_time = current_time + self.__loader.getTimeCost(current_state, state)
+            desired_time = self.__loader.desiredTime[state_index]
+            if(desired_time > current_time): 
                 current_time = desired_time
             if(desired_time >= 0):
                 time_error = time_error + np.abs(current_time - desired_time)
-            current_state = state
+            current_state_index = state_index
         return distance, time_error, len(solution)
 
     def __call__(self, loader, solutions, startEndtimes):

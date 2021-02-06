@@ -1,14 +1,23 @@
 import numpy as np
 import sys
+import osmnx as ox
+from functools import lru_cache
 from src.helpers.constants import MATRIX_FIELDS, ASKED_POINT_FIELDS, AGENT_FIELDS, ENCODED_NAMES
+
+ox.config(use_cache=True, log_console=True)
 
 class Loader(object):
     def __init__(self, matrix, agents):
+        self.__edges = []
+        self.__trails = []
+        self.__default_trail = 1
+        self.__graph = ox.graph_from_place(matrix[MATRIX_FIELDS.REGION], network_type='drive')
+        self.__graph = ox.add_edge_speeds(self.__graph)
+        self.__graph = ox.add_edge_travel_times(self.__graph)
         self.__matrix = matrix
         self.__agents = agents
         self.extractEncodedNames()
         self.extractOrigensAndDestines()
-        self.mountEncodedMatrix()
         self.mountDesiredTimes()
 
     def __len__(self):
@@ -41,28 +50,35 @@ class Loader(object):
             if(askedEndAt is not None): 
                 self.__desiredTime[endIndex] = askedEndAt
 
-    def mountEncodedMatrix(self):
-        self.__distanceMatrix = np.zeros([self.dimension, self.dimension])
-        self.__timeMatrix = np.zeros([self.dimension, self.dimension])
-        for i in range(self.dimension):
-            encodedNameI = self.encodedNames[i]
-            originalI = self.getOriginalIndex(encodedNameI)
-            for j in range(self.dimension):
-                encodedNameJ = self.encodedNames[j]
-                originalJ = self.getOriginalIndex(encodedNameJ)
-                self.__distanceMatrix[i, j] = self.matrix[originalI, originalJ][0] or 1e-14
-                self.__timeMatrix[i, j] = self.matrix[originalI, originalJ][1]
+    @lru_cache(maxsize=None)
+    def strToCoord(self, string):
+        return ox.get_nearest_node(self.__graph, tuple(float(coord) for coord in self.decodePlace(string).split(',')))
 
+    @lru_cache(maxsize=None)
+    def getDistance(self, origenStr, destinationStr):
+        origen = self.strToCoord(origenStr) 
+        destination = self.strToCoord(destinationStr)
+        route = ox.shortest_path(self.__graph, origen, destination, weight='travel_time')
+        edge_lengths = ox.utils_graph.get_route_edge_attributes(self.__graph, route, 'length')
+        return sum(edge_lengths)
 
-    def getOriginalIndex(self, encodedName):
-        originalName = self.decodePlace(encodedName)
-        return self.localNames.index(originalName)
+    @lru_cache(maxsize=None)
+    def getTimeCost(self, origenStr, destinationStr):
+        origen = self.strToCoord(origenStr) 
+        destination = self.strToCoord(destinationStr)
+        route = ox.shortest_path(self.__graph, origen, destination, weight='travel_time')
+        edge_times = ox.utils_graph.get_route_edge_attributes(self.__graph, route, 'travel_time')
+        return sum(edge_times)
 
     def getIncludedOrigens(self, current_state, current_time, end_time, shoudntblockOrigens):
         if(shoudntblockOrigens):
-            current_index = self.encodedNameIndex(current_state)
-            time_cost = self.timeMatrix[current_index, self.origens]
-            future_time = time_cost + current_time 
+            time_cost_list = np.array([])
+            for origenIndex in self.origens:
+                decoded_next_state = self.decodePlace(self.encodedNames[origenIndex])
+                decoded_current_state = self.decodePlace(current_state)
+                time_spent = self.getTimeCost(decoded_next_state, decoded_current_state)
+                time_cost_list = np.append(time_cost_list, time_spent)
+            future_time = time_cost_list + current_time 
             origens = np.array(self.origens)
             return set(origens[future_time < end_time])
         return set()
@@ -102,11 +118,67 @@ class Loader(object):
 
     def getCurrentTime(self, startTime, startEncodedName, endEncodedName):
         time = startTime
-        startIndex, endIndex = self.encodedNameIndex(startEncodedName), self.encodedNameIndex(endEncodedName)
-        timeSpent = self.timeMatrix[startIndex, endIndex]
+        startName = self.decodePlace(startEncodedName)
+        endName = self.decodePlace(endEncodedName)
+        timeSpent = self.getTimeCost(startName, endName)
+        endIndex = self.encodedNameIndex(endEncodedName)
         desiredTime = self.desiredTime[endIndex]
         time += timeSpent
         return time if time > desiredTime else desiredTime
+
+    def prepareTrails(self, edge, delta_matrix, step):
+        if(list(edge) not in self.__edges):
+            self.__edges.append(list(edge))
+            self.__trails.append(self.__default_trail)
+            delta_matrix = np.append(delta_matrix, step)
+        else:
+            edge_index = self.__edges.index(list(edge))
+            delta_matrix[edge_index] += step
+
+        return delta_matrix
+    
+    def updateTrails(self, rho, delta_matrix):
+        self.__trails = (1 - rho)*np.array(self.__trails) + delta_matrix
+
+        npEdges = np.array(self.__edges)
+        condition = self.__trails > self.__default_trail
+        self.__edges = npEdges[condition].tolist()
+        self.__trails = self.__trails[condition].tolist()
+
+    def getTrail(self, current, neighbor):
+        current_edge = [current, neighbor]
+        if(current_edge in self.__edges):
+            edge_index = self.__edges.index(current_edge)
+            return self.__trails[edge_index]
+        else:
+            return self.__default_trail
+
+    def localPheromoneUpdate(self, rho, teams): 
+        delta_matrix = np.zeros(len(self.__trails))
+
+        for team in teams:
+            step = 1.0 / np.random.choice(team.evaluation, p=[0.75, 0.25, 0])
+            for solution in team.solution:
+                src = solution[:-1]
+                dest = solution[1:]
+                solution_edges = list(zip(*[src, dest]))
+                for edge in solution_edges:
+                    delta_matrix = self.prepareTrails(edge, delta_matrix, step)
+        
+        self.updateTrails(rho, delta_matrix)
+
+    def globalPheromoneUpdate(self, rho, best_solution, best_evaluation):
+        delta_matrix = np.zeros_like(self.__trails)
+
+        step = 1.0 / np.random.choice(best_evaluation,  p=[0, 0.25, 0.75])
+        for solution in best_solution:
+            src = solution[:-1]
+            dest = solution[1:]
+            solution_edges = list(zip(*[src, dest]))
+            for edge in solution_edges:
+                delta_matrix = self.prepareTrails(edge, delta_matrix, step)
+
+        self.updateTrails(rho, delta_matrix)
 
     @property
     def encodedNames(self):
@@ -117,29 +189,9 @@ class Loader(object):
         return len(self.encodedNames)
 
     @property
-    def localNames(self):
-        return self.__matrix[MATRIX_FIELDS.LOCAL_NAMES]
-
-    @property
     def askedPoints(self):
         return self.__matrix[MATRIX_FIELDS.ASKED_POINTS]
-    
-    @property
-    def distanceMatrix(self):
-        return np.array(self.__distanceMatrix)
-    
-    @property
-    def timeMatrix(self):
-        return np.array(self.__timeMatrix)
 
     @property
     def desiredTime(self):
         return self.__desiredTime
-    
-    @property
-    def matrix(self):
-        return np.array(self.__matrix[MATRIX_FIELDS.ADJACENCY_MATRIX])
-
-    @property
-    def nodes(self):
-        return list(range(0, self.dimension))

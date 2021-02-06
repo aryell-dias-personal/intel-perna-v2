@@ -1,5 +1,5 @@
 class MATRIX_FIELDS:
-    LOCAL_NAMES = "localNames"
+    REGION = "region"
     ADJACENCY_MATRIX= "adjacencyMatrix"
     ASKED_POINTS = "askedPoints"
 

@@ -208,3 +208,5 @@ tmp
 # Serverless directories
 .serverless
 node_modules
+docs
+cache

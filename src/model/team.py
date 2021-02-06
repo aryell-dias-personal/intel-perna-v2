@@ -30,17 +30,6 @@ class AntTeam(object):
     def startEndtimes(self):
         return self.__startEndtimes
 
-    def __distance_of(self, solution):
-        distance = 0
-        if(solution):
-            current_state = solution[0]
-            for state in solution[1:]:
-                current_state_index = self.__loader.encodedNameIndex(current_state)
-                state_index = self.__loader.encodedNameIndex(state)
-                distance = distance + self.__loader.distanceMatrix[current_state_index, state_index]
-                current_state = state
-        return distance
-
     def __find_init(self, ant):
         return self.__initial_states[self.__ants.index(ant)]
 
@@ -54,14 +43,26 @@ class AntTeam(object):
         self.__taboo = list(set(self.__taboo))
         self.__remain = set(self.__loader.encodedNames) - set(self.__taboo)
 
-    def __evaluate(self, ant): 
+    def __evaluate_ant(self, ant):
+        ant_solution = list(map(
+            self.__loader.encodedNameIndex, ant.solution + [ant.solution[0]]
+        ))
+        return self.__evaluation_criterion(self.__loader, [ant_solution], [ant.startEndTime])
+
+    def __evaluate(self, ant, option): 
         if(len(ant.find_neighborhood(self.__loader, self.__taboo))):
-            return self.__distance_of(ant.solution + [ant.solution[0]])
+            ant_evaluation = self.__evaluate_ant(ant)
+            if(option == 2): 
+                return -ant_evaluation[option]
+            return ant_evaluation[option]
         else:
             return sys.maxsize
 
     def __choose_next_ant(self):
-        return min(self.__ants, key=self.__evaluate)
+        option = np.random.choice(3)
+        def evaluate(ant):
+            return self.__evaluate(ant, option)
+        return min(self.__ants, key=evaluate)
 
     def __update_solution(self):
         for ant in self.__ants:
@@ -70,7 +71,7 @@ class AntTeam(object):
             )))
             self.__solution_track_times.append(ant.track_times)
 
-    def build_solution(self, loader, q0, alpha, beta, trails):
+    def build_solution(self, loader, q0, alpha, beta):
         self.__taboo = []
         self.__solution = []
         self.__solution_track_times = []
@@ -79,7 +80,7 @@ class AntTeam(object):
         self.__update_taboo()
 
         while len(self.__taboo) < len(loader):
-            transition_params = [loader, self.__taboo, q0, alpha, beta, trails]
+            transition_params = [loader, self.__taboo, q0, alpha, beta]
             ant = self.__choose_next_ant()
             next_state = ant.state_transition_rule(*transition_params)
             if(not next_state): break
