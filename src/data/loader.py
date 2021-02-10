@@ -4,7 +4,7 @@ import osmnx as ox
 from functools import lru_cache
 from src.helpers.constants import MATRIX_FIELDS, ASKED_POINT_FIELDS, AGENT_FIELDS, ENCODED_NAMES
 
-ox.config(use_cache=True, log_console=True)
+ox.config(use_cache=False, log_console=True)
 
 class Loader(object):
     def __init__(self, matrix, agents):
