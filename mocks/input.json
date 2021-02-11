@@ -5,8 +5,8 @@
             "route": [],
             "garage": "-7.8338236479989956,-34.90601608725778<{*_-_*}>0",
             "places": 10,
-            "startAt": 0,
-            "endAt": 1000000,
+            "askedStartAt": 0,
+            "askedEndAt": 1000000,
             "email": "aryelld@gmail.com"
         },
         {
@@ -14,8 +14,8 @@
             "route": [],
             "garage": "-8.051985040736222,-34.928665646785866<{*_-_*}>01",
             "places": 20,
-            "startAt": 0,
-            "endAt": 1000000,
+            "askedStartAt": 0,
+            "askedEndAt": 1000000,
             "email": "addm@ecomp.com.br"
         }
     ],

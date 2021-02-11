@@ -14,3 +14,7 @@ talvez precise para debugar o erro que acontece ao tentar executar task:
 para debugar no google
 
 ~ gcloud beta app deploy
+
+para acompanhar os logs
+
+~ gcloud app logs tail -s default

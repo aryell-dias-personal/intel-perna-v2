@@ -16,30 +16,41 @@ load_dotenv()
 app = Flask(__name__)
 
 def getRoutes(payload):
-    data = json.loads(base64.b64decode(payload).decode('utf-8'))
+    print("PAYLOAD")
+    print(payload)
+    data = json.loads(payload)
+    print("DATA")
+    print(data)
+    print("PREPARING_ANTS")
     evaluation = Evaluation.sumEvaluation()
     antSystem = TeamAntColonyOptimization(data[PAYLOAD.AGENTS], evaluation)
+    print("LOADING_DATA")
     loader = Loader(data[PAYLOAD.MATRIX], data[PAYLOAD.AGENTS])
     stopCriterion = StopCriterion.iteration_limit(150)
+    print("EXECUTING")
     solutions, score, times, track = antSystem.optimize(loader, stopCriterion)
     result = parseResult(loader, solutions, times, data[PAYLOAD.AGENTS])
+    print("NOTIFYING")
     notifyUser(result)
     return result
 
 @app.route("/", methods=["POST"])
 def post():
     try:
+        print("REQUEST")
         result = getRoutes(request.data)
+        print("RESULT")
+        print(result)
         return make_response(jsonify(
             success=True,
             result=result
         ), 200)
     except Exception as err:
-        message = err.args[0] if err.args and err.args[0] else "Internal Server Error"
+        print("ERROR")
+        print(traceback.format_exc())
         return make_response(jsonify(
             success=False,
-            message=message,
-            stack=traceback.format_exc()
+            message=traceback.format_exc()
         ), 500)
 
 if __name__ == "__main__":
