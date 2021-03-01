@@ -1,20 +1,18 @@
-To deploy:
+# Bem vindo ao PERNA_INTEL
+
+## Para fazer o deploy rode:
 
 ~ gcloud init
 ~ gcloud app deploy
 
-endpoint: 
-
-~ https://perna-app.appspot.com/
-
-talvez precise para debugar o erro que acontece ao tentar executar task:
-
-~ https://cloud.google.com/logging/docs/setup/python
-
-para debugar no google
+## Para debugar o erro que acontece ao tentar executar task:
 
 ~ gcloud beta app deploy
 
-para acompanhar os logs
+para acompanhar os logs:
 
 ~ gcloud app logs tail -s default
+
+## Algumas observações:
+
+> o endpoint é: https://perna-app.appspot.com/
